@@ -1,4 +1,4 @@
-import type { Habit, CompletionLog, StreakFreeze, StreakInfo } from '../types';
+import type { Habit, CompletionLog, StreakFreeze, StreakInfo, DayConsistency } from '../types';
 import {
   formatDate,
   getTodayDateString,
@@ -28,6 +28,28 @@ export function calculateHabitStreak(
 
   // Total completions count
   const totalCompletions = completedDates.size;
+
+  // Last completion date
+  const sortedCompleted = Array.from(completedDates).sort().reverse();
+  const lastCompletedDate = sortedCompleted[0] || undefined;
+
+  // Weekly consistency (past 7 days ending today)
+  const dayLabels = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+  const weeklyConsistency: DayConsistency[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = formatDate(d);
+    const dayName = dayLabels[d.getDay()];
+    const isScheduled = isHabitScheduledForDate(habit.frequency, dateStr);
+    const isCompleted = completedDates.has(dateStr);
+    weeklyConsistency.push({
+      dayName,
+      date: dateStr,
+      isCompleted,
+      isScheduled,
+    });
+  }
 
   // 30-day consistency rate
   let scheduledLast30 = 0;
@@ -61,6 +83,8 @@ export function calculateHabitStreak(
       isFrozenToday,
       totalCompletions,
       completionRateLast30Days,
+      lastCompletedDate,
+      weeklyConsistency,
     };
   }
 
@@ -79,6 +103,8 @@ export function calculateHabitStreak(
     isFrozenToday,
     totalCompletions,
     completionRateLast30Days,
+    lastCompletedDate,
+    weeklyConsistency,
   };
 }
 
@@ -178,7 +204,7 @@ function calculateWeeklyQuotaStreak(
   // Go back week by week (up to 52 weeks)
   const today = getTodayDateString();
   const currentWeekDays = getWeekDates(today);
-  const completedThisWeek = currentWeekDays.filter((d) => completedDates.has(d)).length;
+  const completedThisWeek = currentWeekDays.filter((d: string) => completedDates.has(d)).length;
 
   // If this week is already met, add to current streak
   if (completedThisWeek >= targetQuota) {
@@ -190,7 +216,7 @@ function calculateWeeklyQuotaStreak(
 
   for (let w = 0; w < 52; w++) {
     const weekDays = getWeekDates(formatDate(checkDate));
-    const completedCount = weekDays.filter((d) => completedDates.has(d)).length;
+    const completedCount = weekDays.filter((d: string) => completedDates.has(d)).length;
 
     if (completedCount >= targetQuota) {
       currentStreak++;

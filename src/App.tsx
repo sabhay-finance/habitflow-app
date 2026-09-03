@@ -7,8 +7,9 @@ import type { ActiveTab, Habit } from './types';
 import { ANIMATION_CONFIG } from './constants/config';
 import { Header } from './components/navigation/Header';
 import { MobileTabBar } from './components/navigation/MobileTabBar';
-import { FlocusHomeView } from './components/flocus/FlocusHomeView';
+import { DashboardOverview } from './components/dashboard/DashboardOverview';
 import { HabitsPageView } from './components/habits/HabitsPageView';
+import { CalendarHistoryView } from './components/calendar/CalendarHistoryView';
 import { AnalyticsView } from './components/heatmap/AnalyticsView';
 import { BadgesView } from './components/gamification/BadgesView';
 import { SettingsView } from './components/settings/SettingsView';
@@ -19,6 +20,7 @@ import { BadgeUnlockedModal } from './components/gamification/BadgeUnlockedModal
 import { DashboardSkeleton } from './components/common/SkeletonLoader';
 import { FocusTimerModal } from './components/focus/FocusTimerModal';
 import { ThemeSelectorModal } from './components/flocus/ThemeSelectorModal';
+import { FeedbackToast } from './components/common/FeedbackToast';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('today');
@@ -35,6 +37,8 @@ export const App: React.FC = () => {
     streakMap,
     overallMaxStreak,
     isLoading,
+    feedbackToast,
+    dismissFeedbackToast,
     gamification,
     levelInfo,
     levelUpData,
@@ -117,16 +121,22 @@ export const App: React.FC = () => {
               transition={{ duration: ANIMATION_CONFIG.tabTransitionDuration, ease: 'easeInOut' }}
             >
               {activeTab === 'today' && (
-                <FlocusHomeView
+                <DashboardOverview
                   habits={habits}
+                  logs={logs}
+                  freezes={freezes}
                   streakMap={streakMap}
-                  activeTheme={activeTheme}
-                  onOpenThemeModal={() => setIsThemeModalOpen(true)}
-                  onNavigateToHabits={() => setActiveTab('habits')}
-                  onToggleHabit={toggleCompletion}
-                  onAwardXp={awardXp}
-                  soundEnabled={settings.soundEnabled}
-                  hapticsEnabled={settings.hapticsEnabled}
+                  overallMaxStreak={overallMaxStreak}
+                  levelInfo={levelInfo}
+                  totalXp={gamification.xp}
+                  onOpenFocusModal={() => setIsFocusModalOpen(true)}
+                  onToggle={toggleCompletion}
+                  onEdit={handleOpenEditModal}
+                  onDelete={deleteHabit}
+                  onOpenFreezeModal={(h) => setFreezingHabit(h)}
+                  onReorder={reorderHabits}
+                  onAddNewHabit={handleOpenAddModal}
+                  onSelectTemplate={handleSelectStarterTemplate}
                 />
               )}
 
@@ -143,6 +153,15 @@ export const App: React.FC = () => {
                   onReorder={reorderHabits}
                   onAddNewHabit={handleOpenAddModal}
                   onSelectTemplate={handleSelectStarterTemplate}
+                />
+              )}
+
+              {activeTab === 'calendar' && (
+                <CalendarHistoryView
+                  habits={habits}
+                  logs={logs}
+                  freezes={freezes}
+                  onToggleHabit={toggleCompletion}
                 />
               )}
 
@@ -217,6 +236,9 @@ export const App: React.FC = () => {
         currentThemeId={themeId}
         onSelectTheme={setTheme}
       />
+
+      {/* Subtle Addictive Habit Completion Feedback Toast */}
+      <FeedbackToast toast={feedbackToast} onDismiss={dismissFeedbackToast} />
 
       {/* Gamification Celebrations */}
       <LevelUpModal data={levelUpData} onClose={dismissLevelUp} />

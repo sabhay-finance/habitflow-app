@@ -12,11 +12,12 @@ import { StorageService } from '../services/storage';
 import { SoundEngine } from '../services/sound';
 import { HapticsService } from '../services/haptics';
 import { calculateHabitStreak } from '../utils/streaks';
-import { getTodayDateString, getWeekKey } from '../utils/date';
+import { getTodayDateString, getWeekKey, isHabitScheduledForDate } from '../utils/date';
 import { useGamification } from './useGamification';
 import { XP_CONFIG } from '../constants/config';
 import { sanitizeText, sanitizeDescription } from '../utils/security';
 import { actionRateLimiter } from '../utils/rateLimiter';
+import type { ToastMessage } from '../components/common/FeedbackToast';
 
 export function useHabits() {
   const [habits, setHabits] = useState<Habit[]>([]);
@@ -24,6 +25,9 @@ export function useHabits() {
   const [freezes, setFreezes] = useState<StreakFreeze[]>([]);
   const [settings, setSettings] = useState<UserSettings>(StorageService.getSettings());
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [feedbackToast, setFeedbackToast] = useState<ToastMessage | null>(null);
+
+  const dismissFeedbackToast = useCallback(() => setFeedbackToast(null), []);
 
   // Initialize Gamification hook
   const {
@@ -154,6 +158,52 @@ export function useHabits() {
         // Award XP and evaluate badges
         awardXp(earnedXp);
         evaluateBadges(habits, newLogs, freezes, Math.max(overallMaxStreak, currentStreak + 1));
+
+        // Generate subtle, addictive feedback toast
+        const newStreak = currentStreak + 1;
+        const todayHabits = habits.filter((h) => isHabitScheduledForDate(h.frequency, targetDate));
+        const otherHabitsDone = todayHabits.every(
+          (h) => h.id === habitId || newLogs.some((l) => l.habitId === h.id && l.date === targetDate)
+        );
+
+        let toastData: ToastMessage;
+        if (otherHabitsDone && todayHabits.length > 1) {
+          toastData = {
+            id: `toast-${Date.now()}`,
+            type: 'perfect',
+            title: 'All habits completed today! 🏆',
+            subtitle: `Daily perfect bonus earned (+${earnedXp} XP)`,
+            xp: earnedXp,
+          };
+        } else if (newStreak > 1 && (newStreak % 3 === 0 || newStreak === 7 || newStreak === 14 || newStreak === 30)) {
+          toastData = {
+            id: `toast-${Date.now()}`,
+            type: 'streak',
+            title: `🔥 ${newStreak}-day streak!`,
+            subtitle: `Unstoppable momentum! (+${earnedXp} XP)`,
+            xp: earnedXp,
+          };
+        } else {
+          const rollMessages = [
+            "You're on a roll! ⚡",
+            'Great momentum! ✨',
+            'Another one crushed! 💪',
+            'Consistency is key! 🔥',
+          ];
+          const randomMsg = rollMessages[Math.floor(Math.random() * rollMessages.length)];
+          toastData = {
+            id: `toast-${Date.now()}`,
+            type: 'roll',
+            title: randomMsg,
+            subtitle: `Routine logged (+${earnedXp} XP)`,
+            xp: earnedXp,
+          };
+        }
+
+        setFeedbackToast(toastData);
+        setTimeout(() => {
+          setFeedbackToast((prev) => (prev?.id === toastData.id ? null : prev));
+        }, 2600);
       }
     },
     [logs, streakMap, settings, awardXp, evaluateBadges, habits, freezes, overallMaxStreak]
@@ -333,6 +383,8 @@ export function useHabits() {
     streakMap,
     overallMaxStreak,
     isLoading,
+    feedbackToast,
+    dismissFeedbackToast,
     // Gamification
     gamification,
     levelInfo,

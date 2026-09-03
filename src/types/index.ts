@@ -48,6 +48,13 @@ export interface StreakFreeze {
   usedAt: string;
 }
 
+export interface DayConsistency {
+  dayName: string; // 'M', 'T', 'W', etc.
+  date: string; // 'YYYY-MM-DD'
+  isCompleted: boolean;
+  isScheduled: boolean;
+}
+
 export interface StreakInfo {
   currentStreak: number;
   longestStreak: number;
@@ -55,6 +62,8 @@ export interface StreakInfo {
   isFrozenToday: boolean;
   totalCompletions: number;
   completionRateLast30Days: number;
+  lastCompletedDate?: string;
+  weeklyConsistency?: DayConsistency[];
 }
 
 export interface Badge {
@@ -100,4 +109,4 @@ export interface HabitFormData {
   reminderTime: string;
 }
 
-export type ActiveTab = 'today' | 'habits' | 'analytics' | 'badges' | 'settings';
+export type ActiveTab = 'today' | 'habits' | 'calendar' | 'analytics' | 'badges' | 'settings';
