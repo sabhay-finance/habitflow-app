@@ -9,6 +9,7 @@ import { CalendarHeatmap } from '../heatmap/CalendarHeatmap';
 import { LevelProgressCard } from '../gamification/LevelProgressCard';
 import { EmptyState } from '../common/EmptyState';
 import { FlocusBanner } from './FlocusBanner';
+import { FlocusMusicPlayer } from '../music/FlocusMusicPlayer';
 
 interface DashboardOverviewProps {
   habits: Habit[];
@@ -91,6 +92,9 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
     <div className="space-y-6">
       {/* Flocus Aesthetic Banner with Live Clock, Greeting, Quotes, Ambience */}
       <FlocusBanner onOpenFocusModal={onOpenFocusModal} />
+
+      {/* Flocus Music Lounge: Cigarettes After Sex, Billie Eilish, Lofi */}
+      <FlocusMusicPlayer />
 
       {/* Gamification Level Status Card */}
       <LevelProgressCard levelInfo={levelInfo} totalXp={totalXp} />

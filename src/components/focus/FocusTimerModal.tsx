@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   X,
   Clock,
+  Music,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import type { Habit } from '../../types';
@@ -18,6 +19,7 @@ import { SoundEngine } from '../../services/sound';
 import { HapticsService } from '../../services/haptics';
 import { ANIMATION_CONFIG } from '../../constants/config';
 import { Button } from '../common/Button';
+import { CURATED_CHANNELS } from '../music/FlocusMusicPlayer';
 
 interface FocusTimerModalProps {
   isOpen: boolean;
@@ -44,6 +46,8 @@ export const FocusTimerModal: React.FC<FocusTimerModalProps> = ({
   const [selectedHabitId, setSelectedHabitId] = useState<string>(habits[0]?.id || '');
   const [activeSoundscape, setActiveSoundscape] = useState<SoundscapeType>('off');
   const [ambientVolume, setAmbientVolume] = useState<number>(0.35);
+  const [audioMode, setAudioMode] = useState<'music' | 'ambience'>('music');
+  const [musicChannelId, setMusicChannelId] = useState<string>('cas');
   const [isFinished, setIsFinished] = useState<boolean>(false);
 
   const timerRef = useRef<any>(null);
@@ -317,56 +321,120 @@ export const FocusTimerModal: React.FC<FocusTimerModalProps> = ({
               </motion.button>
             </div>
 
-            {/* Ambient Soundscapes Bar (Flocus signature!) */}
-            <div className="w-full p-3.5 rounded-2xl bg-slate-800/60 border border-slate-700/60 space-y-2.5">
+            {/* Audio Companion (Flocus Ambience & Music Lounge) */}
+            <div className="w-full p-3.5 rounded-2xl bg-slate-800/60 border border-slate-700/60 space-y-3">
+              {/* Audio Mode Tabs */}
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                  <Volume2 className="w-3.5 h-3.5 text-brand-400" />
-                  Ambient Soundscape
-                </span>
-                <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
-                  {activeSoundscape === 'off' ? 'Muted' : activeSoundscape}
-                </span>
-              </div>
-
-              {/* Soundscape Selector Chips */}
-              <div className="grid grid-cols-5 gap-1.5 text-xs">
-                {[
-                  { id: 'off' as SoundscapeType, label: 'Off', icon: '🔇' },
-                  { id: 'rain' as SoundscapeType, label: 'Rain', icon: '🌧️' },
-                  { id: 'waves' as SoundscapeType, label: 'Waves', icon: '🌊' },
-                  { id: 'fire' as SoundscapeType, label: 'Fire', icon: '🪵' },
-                  { id: 'brown_noise' as SoundscapeType, label: 'Zen', icon: '🌫️' },
-                ].map((s) => (
+                <div className="flex items-center gap-1 p-0.5 rounded-xl bg-slate-900 border border-slate-700/60 text-xs">
                   <button
-                    key={s.id}
-                    onClick={() => handleSoundscapeChange(s.id)}
-                    className={`py-1.5 px-1 rounded-xl text-center font-bold flex flex-col items-center gap-0.5 transition-all ${
-                      activeSoundscape === s.id
+                    onClick={() => setAudioMode('music')}
+                    className={`px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 transition-all ${
+                      audioMode === 'music'
                         ? 'bg-brand-600 text-white shadow-sm'
-                        : 'bg-slate-800 text-slate-400 hover:text-white'
+                        : 'text-slate-400 hover:text-white'
                     }`}
                   >
-                    <span>{s.icon}</span>
-                    <span className="text-[9px] truncate w-full">{s.label}</span>
+                    <Music className="w-3 h-3" />
+                    <span>Music Lounge</span>
                   </button>
-                ))}
+                  <button
+                    onClick={() => setAudioMode('ambience')}
+                    className={`px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 transition-all ${
+                      audioMode === 'ambience'
+                        ? 'bg-brand-600 text-white shadow-sm'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Volume2 className="w-3 h-3" />
+                    <span>Ambience</span>
+                  </button>
+                </div>
+
+                <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
+                  {audioMode === 'music'
+                    ? CURATED_CHANNELS.find((c) => c.id === musicChannelId)?.artist
+                    : activeSoundscape === 'off'
+                    ? 'Muted'
+                    : activeSoundscape}
+                </span>
               </div>
 
-              {/* Volume Slider */}
-              {activeSoundscape !== 'off' && (
-                <div className="flex items-center gap-2 pt-1">
-                  <VolumeX className="w-3.5 h-3.5 text-slate-500" />
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.05"
-                    value={ambientVolume}
-                    onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-                    className="flex-1 accent-brand-500 h-1.5 bg-slate-700 rounded-lg cursor-pointer"
-                  />
-                  <Volume2 className="w-3.5 h-3.5 text-slate-400" />
+              {audioMode === 'music' ? (
+                /* Music Lounge Selector */
+                <div className="space-y-2.5">
+                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+                    {CURATED_CHANNELS.map((channel) => (
+                      <button
+                        key={channel.id}
+                        onClick={() => setMusicChannelId(channel.id)}
+                        className={`px-2.5 py-1 rounded-xl text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 ${
+                          musicChannelId === channel.id
+                            ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm'
+                            : 'bg-slate-900 text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        <span>{channel.emoji}</span>
+                        <span>{channel.artist}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Embedded Spotify Mini Player */}
+                  <div className="rounded-xl overflow-hidden border border-slate-700/60 shadow-inner">
+                    <iframe
+                      title={`Spotify Focus - ${musicChannelId}`}
+                      src={CURATED_CHANNELS.find((c) => c.id === musicChannelId)?.embedUrl}
+                      width="100%"
+                      height="80"
+                      frameBorder="0"
+                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                      loading="lazy"
+                      className="w-full bg-slate-950"
+                    />
+                  </div>
+                </div>
+              ) : (
+                /* Ambient Soundscapes Selector */
+                <div className="space-y-2.5">
+                  <div className="grid grid-cols-5 gap-1.5 text-xs">
+                    {[
+                      { id: 'off' as SoundscapeType, label: 'Off', icon: '🔇' },
+                      { id: 'rain' as SoundscapeType, label: 'Rain', icon: '🌧️' },
+                      { id: 'waves' as SoundscapeType, label: 'Waves', icon: '🌊' },
+                      { id: 'fire' as SoundscapeType, label: 'Fire', icon: '🪵' },
+                      { id: 'brown_noise' as SoundscapeType, label: 'Zen', icon: '🌫️' },
+                    ].map((s) => (
+                      <button
+                        key={s.id}
+                        onClick={() => handleSoundscapeChange(s.id)}
+                        className={`py-1.5 px-1 rounded-xl text-center font-bold flex flex-col items-center gap-0.5 transition-all ${
+                          activeSoundscape === s.id
+                            ? 'bg-brand-600 text-white shadow-sm'
+                            : 'bg-slate-900 text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        <span>{s.icon}</span>
+                        <span className="text-[9px] truncate w-full">{s.label}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Volume Slider */}
+                  {activeSoundscape !== 'off' && (
+                    <div className="flex items-center gap-2 pt-1">
+                      <VolumeX className="w-3.5 h-3.5 text-slate-500" />
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.05"
+                        value={ambientVolume}
+                        onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
+                        className="flex-1 accent-brand-500 h-1.5 bg-slate-700 rounded-lg cursor-pointer"
+                      />
+                      <Volume2 className="w-3.5 h-3.5 text-slate-400" />
+                    </div>
+                  )}
                 </div>
               )}
             </div>
