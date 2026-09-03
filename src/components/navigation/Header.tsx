@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Sun, Moon, Settings, Flame, Zap } from 'lucide-react';
+import { Sun, Moon, Settings, Flame, Zap, Clock } from 'lucide-react';
 import { ANIMATION_CONFIG } from '../../constants/config';
 import { AnimatedCounter } from '../common/AnimatedCounter';
 
@@ -9,6 +9,7 @@ interface HeaderProps {
   onToggleTheme: () => void;
   onOpenSettings: () => void;
   onOpenBadges?: () => void;
+  onOpenFocus?: () => void;
   overallMaxStreak: number;
   level: number;
   xp: number;
@@ -19,6 +20,7 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleTheme,
   onOpenSettings,
   onOpenBadges,
+  onOpenFocus,
   overallMaxStreak,
   level,
   xp,
@@ -63,6 +65,20 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="text-xs">Lv.{level}</span>
             <span className="text-[10px] opacity-75 font-mono">({xp} XP)</span>
           </motion.button>
+
+          {/* Focus Mode Quick Launch (Flocus inspired) */}
+          {onOpenFocus && (
+            <motion.button
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.92 }}
+              onClick={onOpenFocus}
+              className="p-2 rounded-xl text-brand-600 dark:text-brand-400 bg-brand-50/80 dark:bg-brand-950/50 hover:bg-brand-100 dark:hover:bg-brand-900/60 transition-colors"
+              title="Launch Focus Sanctuary"
+              aria-label="Launch Focus Sanctuary"
+            >
+              <Clock className="w-4 h-4" />
+            </motion.button>
+          )}
 
           {/* Theme Toggle */}
           <motion.button

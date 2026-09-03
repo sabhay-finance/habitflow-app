@@ -16,10 +16,12 @@ import { StreakFreezeModal } from './components/habits/StreakFreezeModal';
 import { LevelUpModal } from './components/gamification/LevelUpModal';
 import { BadgeUnlockedModal } from './components/gamification/BadgeUnlockedModal';
 import { DashboardSkeleton } from './components/common/SkeletonLoader';
+import { FocusTimerModal } from './components/focus/FocusTimerModal';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('today');
   const [isHabitModalOpen, setIsHabitModalOpen] = useState(false);
+  const [isFocusModalOpen, setIsFocusModalOpen] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [freezingHabit, setFreezingHabit] = useState<Habit | null>(null);
 
@@ -36,6 +38,7 @@ export const App: React.FC = () => {
     dismissLevelUp,
     newlyUnlockedBadge,
     dismissBadgeModal,
+    awardXp,
     toggleCompletion,
     applyFreeze,
     addHabit,
@@ -88,6 +91,7 @@ export const App: React.FC = () => {
         onToggleTheme={toggleTheme}
         onOpenSettings={() => setActiveTab('settings')}
         onOpenBadges={() => setActiveTab('badges')}
+        onOpenFocus={() => setIsFocusModalOpen(true)}
         overallMaxStreak={overallMaxStreak}
         level={levelInfo.level}
         xp={gamification.xp}
@@ -114,6 +118,7 @@ export const App: React.FC = () => {
                   streakMap={streakMap}
                   levelInfo={levelInfo}
                   totalXp={gamification.xp}
+                  onOpenFocusModal={() => setIsFocusModalOpen(true)}
                   onToggle={toggleCompletion}
                   onEdit={handleOpenEditModal}
                   onDelete={deleteHabit}
@@ -187,6 +192,17 @@ export const App: React.FC = () => {
         habit={freezingHabit}
         freezesAvailable={gamification.streakFreezesAvailable}
         onApplyFreeze={(habitId, date) => applyFreeze(habitId, date)}
+      />
+
+      {/* Flocus-Inspired Focus Sanctuary Modal */}
+      <FocusTimerModal
+        isOpen={isFocusModalOpen}
+        onClose={() => setIsFocusModalOpen(false)}
+        habits={habits}
+        onCompleteHabit={(habitId) => toggleCompletion(habitId)}
+        onAwardXp={(xp) => awardXp(xp)}
+        soundEnabled={settings.soundEnabled}
+        hapticsEnabled={settings.hapticsEnabled}
       />
 
       {/* Gamification Celebrations */}

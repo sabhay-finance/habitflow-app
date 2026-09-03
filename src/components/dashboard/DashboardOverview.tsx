@@ -8,6 +8,7 @@ import { WeeklyTrendChart } from './WeeklyTrendChart';
 import { CalendarHeatmap } from '../heatmap/CalendarHeatmap';
 import { LevelProgressCard } from '../gamification/LevelProgressCard';
 import { EmptyState } from '../common/EmptyState';
+import { FlocusBanner } from './FlocusBanner';
 
 interface DashboardOverviewProps {
   habits: Habit[];
@@ -16,6 +17,7 @@ interface DashboardOverviewProps {
   streakMap: Map<string, StreakInfo>;
   levelInfo: any;
   totalXp: number;
+  onOpenFocusModal: () => void;
   onToggle: (habitId: string, date?: string, coords?: { x: number; y: number }) => void;
   onEdit: (habit: Habit) => void;
   onDelete: (habitId: string) => void;
@@ -32,6 +34,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   streakMap,
   levelInfo,
   totalXp,
+  onOpenFocusModal,
   onToggle,
   onEdit,
   onDelete,
@@ -85,8 +88,11 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   const strokeDashoffset = circumference - (circumference * completionRateToday) / 100;
 
   return (
-    <div className="space-y-6 pb-24">
-      {/* Level & XP Overview */}
+    <div className="space-y-6">
+      {/* Flocus Aesthetic Banner with Live Clock, Greeting, Quotes, Ambience */}
+      <FlocusBanner onOpenFocusModal={onOpenFocusModal} />
+
+      {/* Gamification Level Status Card */}
       <LevelProgressCard levelInfo={levelInfo} totalXp={totalXp} />
 
       {/* Today's Momentum Card */}

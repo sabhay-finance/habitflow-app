@@ -340,6 +340,7 @@ export function useHabits() {
     dismissLevelUp,
     newlyUnlockedBadge,
     dismissBadgeModal,
+    awardXp,
     // Actions
     toggleCompletion,
     applyFreeze,
