@@ -6,6 +6,7 @@ import type {
   UserSettings,
 } from '../types';
 import { formatDate, getWeekKey } from '../utils/date';
+import { safeJsonParse, validateBackupPayload } from '../utils/security';
 
 const STORAGE_KEYS = {
   HABITS: 'habitflow_habits_v1',
@@ -163,10 +164,21 @@ export const StorageService = {
     return JSON.stringify(payload, null, 2);
   },
 
-  /** Import data from JSON string */
+  /** Import data from JSON string with strict validation */
   importAllData(jsonString: string): boolean {
+    const parseResult = safeJsonParse<any>(jsonString);
+    if (!parseResult.success || !parseResult.data) {
+      console.error('Import parse error:', parseResult.error);
+      return false;
+    }
+
+    const parsed = parseResult.data;
+    if (!validateBackupPayload(parsed)) {
+      console.error('Invalid backup schema');
+      return false;
+    }
+
     try {
-      const parsed = JSON.parse(jsonString);
       if (Array.isArray(parsed.habits)) this.saveHabits(parsed.habits);
       if (Array.isArray(parsed.logs)) this.saveLogs(parsed.logs);
       if (Array.isArray(parsed.freezes)) this.saveFreezes(parsed.freezes);
@@ -175,7 +187,7 @@ export const StorageService = {
       localStorage.setItem(STORAGE_KEYS.INITIALIZED, 'true');
       return true;
     } catch (e) {
-      console.error('Import error', e);
+      console.error('Storage write error during import', e);
       return false;
     }
   },

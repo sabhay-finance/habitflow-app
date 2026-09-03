@@ -15,6 +15,8 @@ import { calculateHabitStreak } from '../utils/streaks';
 import { getTodayDateString, getWeekKey } from '../utils/date';
 import { useGamification } from './useGamification';
 import { XP_CONFIG } from '../constants/config';
+import { sanitizeText, sanitizeDescription } from '../utils/security';
+import { actionRateLimiter } from '../utils/rateLimiter';
 
 export function useHabits() {
   const [habits, setHabits] = useState<Habit[]>([]);
@@ -84,6 +86,11 @@ export function useHabits() {
    */
   const toggleCompletion = useCallback(
     (habitId: string, targetDate = getTodayDateString(), clickCoords?: { x: number; y: number }) => {
+      // Rate limit to prevent rapid macro spam or audio buffer lockup
+      if (!actionRateLimiter.checkLimit(`toggle-${habitId}`, { maxOperations: 4, windowMs: 1000 })) {
+        return;
+      }
+
       const existingLogIndex = logs.findIndex(
         (l) => l.habitId === habitId && l.date === targetDate
       );
@@ -195,10 +202,13 @@ export function useHabits() {
    */
   const addHabit = useCallback(
     (formData: HabitFormData) => {
+      const cleanName = sanitizeText(formData.name);
+      if (!cleanName) return null;
+
       const newHabit: Habit = {
         id: `habit-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-        name: formData.name.trim(),
-        description: formData.description.trim(),
+        name: cleanName,
+        description: sanitizeDescription(formData.description),
         emoji: formData.emoji || '⚡',
         color: formData.color || 'violet',
         category: formData.category || 'custom',
@@ -228,8 +238,8 @@ export function useHabits() {
         if (h.id !== habitId) return h;
         return {
           ...h,
-          name: formData.name !== undefined ? formData.name.trim() : h.name,
-          description: formData.description !== undefined ? formData.description.trim() : h.description,
+          name: formData.name !== undefined ? sanitizeText(formData.name) : h.name,
+          description: formData.description !== undefined ? sanitizeDescription(formData.description) : h.description,
           emoji: formData.emoji || h.emoji,
           color: formData.color || h.color,
           category: formData.category || h.category,

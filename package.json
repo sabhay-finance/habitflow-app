@@ -28,7 +28,6 @@
     "recharts": "^3.10.1"
   },
   "devDependencies": {
-    "@capacitor/assets": "^3.0.5",
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
