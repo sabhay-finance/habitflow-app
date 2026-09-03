@@ -1,8 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Sun, Moon, Settings, Flame, Zap, Clock } from 'lucide-react';
+import { Sun, Moon, Settings, Flame, Zap, Clock, Palette } from 'lucide-react';
 import { ANIMATION_CONFIG } from '../../constants/config';
 import { AnimatedCounter } from '../common/AnimatedCounter';
+import type { AestheticTheme } from '../../constants/flocusThemes';
 
 interface HeaderProps {
   isDark: boolean;
@@ -10,6 +11,8 @@ interface HeaderProps {
   onOpenSettings: () => void;
   onOpenBadges?: () => void;
   onOpenFocus?: () => void;
+  onOpenThemeModal?: () => void;
+  activeTheme?: AestheticTheme;
   overallMaxStreak: number;
   level: number;
   xp: number;
@@ -21,6 +24,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenSettings,
   onOpenBadges,
   onOpenFocus,
+  onOpenThemeModal,
+  activeTheme,
   overallMaxStreak,
   level,
   xp,
@@ -77,6 +82,21 @@ export const Header: React.FC<HeaderProps> = ({
               aria-label="Launch Focus Sanctuary"
             >
               <Clock className="w-4 h-4" />
+            </motion.button>
+          )}
+
+          {/* Aesthetic Theme Switcher (Gothic & Ambient) */}
+          {onOpenThemeModal && (
+            <motion.button
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.92 }}
+              onClick={onOpenThemeModal}
+              className="px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition-colors"
+              title="Change Aesthetic Theme (Gothic, Lavender, Sunset)"
+              aria-label="Change Aesthetic Theme"
+            >
+              <span className="text-sm">{activeTheme?.emoji || '🦇'}</span>
+              <Palette className="w-3.5 h-3.5" />
             </motion.button>
           )}
 

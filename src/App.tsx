@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useHabits } from './hooks/useHabits';
 import { useTheme } from './hooks/useTheme';
+import { useAestheticTheme } from './hooks/useAestheticTheme';
 import type { ActiveTab, Habit } from './types';
 import { ANIMATION_CONFIG } from './constants/config';
 import { Header } from './components/navigation/Header';
 import { MobileTabBar } from './components/navigation/MobileTabBar';
-import { DashboardOverview } from './components/dashboard/DashboardOverview';
-import { ManageHabitsView } from './components/habits/ManageHabitsView';
+import { FlocusHomeView } from './components/flocus/FlocusHomeView';
+import { HabitsPageView } from './components/habits/HabitsPageView';
 import { AnalyticsView } from './components/heatmap/AnalyticsView';
 import { BadgesView } from './components/gamification/BadgesView';
 import { SettingsView } from './components/settings/SettingsView';
@@ -17,11 +18,13 @@ import { LevelUpModal } from './components/gamification/LevelUpModal';
 import { BadgeUnlockedModal } from './components/gamification/BadgeUnlockedModal';
 import { DashboardSkeleton } from './components/common/SkeletonLoader';
 import { FocusTimerModal } from './components/focus/FocusTimerModal';
+import { ThemeSelectorModal } from './components/flocus/ThemeSelectorModal';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('today');
   const [isHabitModalOpen, setIsHabitModalOpen] = useState(false);
   const [isFocusModalOpen, setIsFocusModalOpen] = useState(false);
+  const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [freezingHabit, setFreezingHabit] = useState<Habit | null>(null);
 
@@ -52,6 +55,7 @@ export const App: React.FC = () => {
   } = useHabits();
 
   const { isDark, toggleTheme } = useTheme(settings, updateSettings);
+  const { themeId, activeTheme, setTheme } = useAestheticTheme(settings, updateSettings);
 
   const handleOpenAddModal = () => {
     setEditingHabit(null);
@@ -84,7 +88,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col transition-colors duration-300">
+    <div className={`min-h-screen ${activeTheme.backgroundClass} transition-colors duration-500 flex flex-col`}>
       {/* Top Header */}
       <Header
         isDark={isDark}
@@ -92,6 +96,8 @@ export const App: React.FC = () => {
         onOpenSettings={() => setActiveTab('settings')}
         onOpenBadges={() => setActiveTab('badges')}
         onOpenFocus={() => setIsFocusModalOpen(true)}
+        onOpenThemeModal={() => setIsThemeModalOpen(true)}
+        activeTheme={activeTheme}
         overallMaxStreak={overallMaxStreak}
         level={levelInfo.level}
         xp={gamification.xp}
@@ -111,28 +117,25 @@ export const App: React.FC = () => {
               transition={{ duration: ANIMATION_CONFIG.tabTransitionDuration, ease: 'easeInOut' }}
             >
               {activeTab === 'today' && (
-                <DashboardOverview
+                <FlocusHomeView
                   habits={habits}
-                  logs={logs}
-                  freezes={freezes}
                   streakMap={streakMap}
-                  levelInfo={levelInfo}
-                  totalXp={gamification.xp}
-                  onOpenFocusModal={() => setIsFocusModalOpen(true)}
-                  onToggle={toggleCompletion}
-                  onEdit={handleOpenEditModal}
-                  onDelete={deleteHabit}
-                  onOpenFreezeModal={(h) => setFreezingHabit(h)}
-                  onReorder={reorderHabits}
-                  onAddNewHabit={handleOpenAddModal}
-                  onSelectTemplate={handleSelectStarterTemplate}
+                  activeTheme={activeTheme}
+                  onOpenThemeModal={() => setIsThemeModalOpen(true)}
+                  onNavigateToHabits={() => setActiveTab('habits')}
+                  onToggleHabit={toggleCompletion}
+                  onAwardXp={awardXp}
+                  soundEnabled={settings.soundEnabled}
+                  hapticsEnabled={settings.hapticsEnabled}
                 />
               )}
 
               {activeTab === 'habits' && (
-                <ManageHabitsView
+                <HabitsPageView
                   habits={habits}
                   streakMap={streakMap}
+                  levelInfo={levelInfo}
+                  totalXp={gamification.xp}
                   onToggle={toggleCompletion}
                   onEdit={handleOpenEditModal}
                   onDelete={deleteHabit}
@@ -163,6 +166,8 @@ export const App: React.FC = () => {
                   onUpdateSettings={updateSettings}
                   onResetDemoData={resetToDemoData}
                   onClearAllData={clearAllData}
+                  activeAestheticThemeId={themeId}
+                  onSelectAestheticTheme={setTheme}
                 />
               )}
             </motion.div>
@@ -203,6 +208,14 @@ export const App: React.FC = () => {
         onAwardXp={(xp) => awardXp(xp)}
         soundEnabled={settings.soundEnabled}
         hapticsEnabled={settings.hapticsEnabled}
+      />
+
+      {/* Aesthetic & Gothic Themes Gallery Modal */}
+      <ThemeSelectorModal
+        isOpen={isThemeModalOpen}
+        onClose={() => setIsThemeModalOpen(false)}
+        currentThemeId={themeId}
+        onSelectTheme={setTheme}
       />
 
       {/* Gamification Celebrations */}

@@ -83,6 +83,7 @@ export interface GamificationState {
 
 export interface UserSettings {
   theme: 'system' | 'light' | 'dark';
+  aestheticTheme?: string; // 'gothic' | 'dark_academia' | 'gothic_velvet' | 'lavender' | 'sunset' | 'zen' | 'cyber' | 'ocean' | 'minimal'
   soundEnabled: boolean;
   hapticsEnabled: boolean;
   notificationsEnabled: boolean;

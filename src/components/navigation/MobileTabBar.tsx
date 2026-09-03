@@ -1,12 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import {
-  CalendarCheck,
+  Clock,
   ListTodo,
   BarChart3,
   Award,
   Plus,
-  Sliders,
+  Palette,
 } from 'lucide-react';
 import type { ActiveTab } from '../../types';
 import { ANIMATION_CONFIG } from '../../constants/config';
@@ -23,11 +23,11 @@ export const MobileTabBar: React.FC<MobileTabBarProps> = ({
   onAddNewHabit,
 }) => {
   const tabs = [
-    { id: 'today' as ActiveTab, label: 'Today', icon: CalendarCheck },
+    { id: 'today' as ActiveTab, label: 'Focus', icon: Clock },
     { id: 'habits' as ActiveTab, label: 'Habits', icon: ListTodo },
     { id: 'analytics' as ActiveTab, label: 'Stats', icon: BarChart3 },
     { id: 'badges' as ActiveTab, label: 'Badges', icon: Award },
-    { id: 'settings' as ActiveTab, label: 'Options', icon: Sliders },
+    { id: 'settings' as ActiveTab, label: 'Themes', icon: Palette },
   ];
 
   return (

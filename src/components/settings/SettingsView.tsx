@@ -11,10 +11,13 @@ import {
   Upload,
   RefreshCw,
   Trash2,
+  Palette,
+  Check,
 } from 'lucide-react';
 import type { UserSettings } from '../../types';
 import { StorageService } from '../../services/storage';
 import { NotificationService } from '../../services/notifications';
+import { AESTHETIC_THEMES } from '../../constants/flocusThemes';
 import { Button } from '../common/Button';
 
 interface SettingsViewProps {
@@ -22,6 +25,8 @@ interface SettingsViewProps {
   onUpdateSettings: (newSettings: Partial<UserSettings>) => void;
   onResetDemoData: () => void;
   onClearAllData: () => void;
+  activeAestheticThemeId?: string;
+  onSelectAestheticTheme?: (themeId: string) => void;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
@@ -29,6 +34,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onUpdateSettings,
   onResetDemoData,
   onClearAllData,
+  activeAestheticThemeId = 'gothic_cathedral',
+  onSelectAestheticTheme,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -203,6 +210,63 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               >
                 <Icon className="w-5 h-5" />
                 <span className="text-xs font-bold">{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Flocus Aesthetic & Gothic Themes Gallery */}
+      <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+              <Palette className="w-4 h-4 text-rose-500" />
+              Aesthetic &amp; Gothic Themes
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Select an atmospheric theme for your Focus sanctuary and dashboard
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {AESTHETIC_THEMES.map((theme) => {
+            const isSelected = activeAestheticThemeId === theme.id;
+            return (
+              <button
+                key={theme.id}
+                onClick={() => onSelectAestheticTheme?.(theme.id)}
+                className={`p-3.5 rounded-2xl text-left border transition-all relative overflow-hidden ${
+                  isSelected
+                    ? 'border-brand-500 bg-brand-50/40 dark:bg-slate-800 shadow-md ring-2 ring-brand-500/20'
+                    : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 hover:border-slate-300 dark:hover:border-slate-700'
+                }`}
+              >
+                <div className={`h-1.5 w-full rounded-full bg-gradient-to-r ${theme.accentGradient} mb-2.5`} />
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{theme.emoji}</span>
+                    <div>
+                      <h4 className="font-extrabold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
+                        {theme.name}
+                        {theme.category === 'gothic' && (
+                          <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-rose-900/80 text-rose-200 border border-rose-700/40">
+                            Gothic
+                          </span>
+                        )}
+                      </h4>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">
+                        {theme.description}
+                      </p>
+                    </div>
+                  </div>
+                  {isSelected && (
+                    <div className="w-5 h-5 rounded-full bg-brand-600 text-white flex items-center justify-center shrink-0">
+                      <Check className="w-3 h-3 stroke-[3]" />
+                    </div>
+                  )}
+                </div>
               </button>
             );
           })}
